@@ -1,0 +1,13 @@
+# secrets
+.env
+# virtualenv / python
+.venv/
+__pycache__/
+*.pyc
+# runtime data: caches, run outputs, enriched contacts (PII)
+data/cache/
+data/jobs/
+data/contacts/
+# local tooling
+.claude/
+*.tmp

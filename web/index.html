@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bloomasia Intent Radar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f6f7fb;--panel:#fff;--ink:#0f172a;--muted:#64748b;--line:#e5e7eb;--accent:#1d4ed8;--accent-2:#0ea5e9;
+    --ok:#059669;--warn:#d97706;--bad:#dc2626;--chip:#eef2ff;--chip-ink:#3730a3;
+    --k-regulatory_penalty:#dc2626;--k-corporate_event:#7c3aed;--k-news_trigger:#d97706;--k-hiring:#0891b2;
+    --k-engagement:#059669;--k-job_change:#db2777;--k-category_buyer:#64748b;--k-regulatory_change:#94a3b8;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+  header{display:flex;align-items:center;gap:16px;padding:14px 24px;background:#0b1220;color:#fff;flex-wrap:wrap}
+  body{overflow-x:hidden}
+  header .logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:grid;place-items:center;font-weight:700}
+  header h1{font-size:17px;margin:0;font-weight:600}
+  header .sub{color:#9fb0cc;font-size:12px}
+  header .pills{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+  .pill{font-size:11px;padding:4px 9px;border-radius:999px;background:#1e293b;color:#cbd5e1;border:1px solid #334155;white-space:nowrap}
+  .pill.on{background:#064e3b;border-color:#065f46;color:#a7f3d0}
+  .pill.off{background:#3b1d1d;border-color:#7f1d1d;color:#fecaca}
+  main{display:grid;grid-template-columns:340px 1fr;gap:18px;padding:18px 24px;min-height:calc(100vh - 62px)}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .panel h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 10px;font-weight:600}
+  select,input,button{font:inherit}
+  select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;border:1px solid transparent;background:var(--accent);color:#fff;font-weight:600;cursor:pointer}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn.ghost{background:#fff;color:var(--ink);border-color:var(--line)}
+  .btn.sm{padding:6px 10px;font-size:12px;font-weight:500}
+  .stack{display:flex;flex-direction:column;gap:12px}
+  .steps{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+  .step{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
+  .step .dot{width:10px;height:10px;border-radius:50%;background:#e2e8f0;flex:none}
+  .step.active{color:var(--ink);font-weight:600}.step.active .dot{background:var(--accent);box-shadow:0 0 0 4px #dbeafe;animation:pulse 1.2s infinite}
+  .step.done{color:var(--ink)}.step.done .dot{background:var(--ok)}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 #bfdbfe}70%{box-shadow:0 0 0 6px rgba(191,219,254,0)}100%{box-shadow:0 0 0 0 rgba(191,219,254,0)}}
+  .log{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;color:#334155;background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:10px;max-height:190px;overflow:auto;white-space:pre-wrap}
+  .counts{display:flex;flex-wrap:wrap;gap:6px}
+  .count{font-size:11px;background:#f1f5f9;border-radius:8px;padding:4px 8px;color:#334155}
+  .count b{color:var(--ink)}
+  .runs{display:flex;flex-direction:column;gap:4px;max-height:200px;overflow:auto}
+  .run{font-size:12px;padding:8px 10px;border-radius:8px;border:1px solid var(--line);cursor:pointer;display:flex;justify-content:space-between;gap:8px}
+  .run:hover{background:#f8fafc}.run.sel{border-color:var(--accent);background:#eff6ff}
+  .run .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .icp{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:16px}
+  .icp h3{margin:0 0 6px;font-size:13px}
+  .icp p{margin:0;color:#334155;line-height:1.45}
+  .chips{display:flex;flex-wrap:wrap;gap:5px}
+  .chip{font-size:11px;padding:3px 8px;border-radius:999px;background:var(--chip);color:var(--chip-ink)}
+  .kind{font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:6px;color:#fff;white-space:nowrap}
+  table{width:100%;border-collapse:collapse}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#fff}
+  td{padding:10px;border-bottom:1px solid #f1f5f9;vertical-align:top}
+  tr.lead{cursor:pointer}tr.lead:hover td{background:#f8fafc}
+  .score{display:flex;align-items:center;gap:8px;min-width:96px}
+  .bar{height:8px;flex:1;background:#e2e8f0;border-radius:99px;overflow:hidden}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent-2),var(--accent))}
+  .score b{width:28px;text-align:right}
+  .co{font-weight:600}.sub{color:var(--muted);font-size:12px}
+  .why{color:#334155;font-size:12.5px;line-height:1.4;max-width:520px}
+  .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+  .toolbar input[type=search]{padding:8px 10px;border:1px solid var(--line);border-radius:10px;min-width:220px}
+  .toolbar label{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+  .empty{padding:40px;text-align:center;color:var(--muted)}
+  .tablewrap{max-height:calc(100vh - 330px);overflow:auto;border:1px solid var(--line);border-radius:12px}
+  /* drawer */
+  .overlay{position:fixed;inset:0;background:rgba(2,6,23,.45);display:none}
+  .overlay.open{display:block}
+  .drawer{position:fixed;top:0;right:0;height:100%;width:min(720px,100%);background:#fff;box-shadow:-20px 0 60px rgba(0,0,0,.2);transform:translateX(100%);transition:transform .25s;overflow:auto;padding:22px 26px}
+  .drawer.open{transform:none}
+  .drawer h2{margin:0;font-size:20px}
+  .drawer .close{position:absolute;top:14px;right:16px;border:none;background:#f1f5f9;border-radius:8px;padding:6px 10px;cursor:pointer}
+  .sec{margin-top:18px}
+  .sec h4{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+  .sig{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px}
+  .sig .top{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--muted)}
+  .sig .t{font-weight:600;margin:4px 0}
+  .sig a{color:var(--accent);text-decoration:none;font-size:12px}
+  .contact{display:flex;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;align-items:center}
+  .contact .n{font-weight:600}.contact .meta{font-size:12px;color:var(--muted)}
+  .tabs{display:flex;gap:6px;margin-bottom:10px}
+  .tab{padding:6px 10px;border-radius:8px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:12px}
+  .tab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .msg{white-space:pre-wrap;background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:13px;line-height:1.5}
+  .note{font-size:12px;color:var(--muted)}
+  .badge{font-size:11px;padding:2px 7px;border-radius:6px;background:#f1f5f9;color:#334155}
+  .badge.ok{background:#d1fae5;color:#065f46}.badge.warn{background:#fef3c7;color:#92400e}
+  @media (max-width:900px){main{grid-template-columns:1fr}.icp{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">B</div>
+  <div><h1>Bloomasia Intent Radar</h1><div class="sub">Pick a live event from bloomasia.in → who is in-market for it this month, and why</div></div>
+  <div class="pills" id="pills"></div>
+</header>
+<main>
+  <aside class="stack">
+    <div class="panel">
+      <h2>1 · Choose an event (live from bloomasia.in)</h2>
+      <select id="event"></select>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn" id="run">Find intent leads</button>
+        <button class="btn ghost" id="refreshEvents" title="Re-scrape bloomasia.in">↻</button>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>2 · Pipeline</h2>
+      <div class="steps" id="steps"></div>
+      <div class="counts" id="counts" style="margin-top:10px"></div>
+      <div class="log" id="log" style="margin-top:10px">Waiting…</div>
+    </div>
+    <div class="panel">
+      <h2>Previous runs</h2>
+      <div class="runs" id="runs"></div>
+    </div>
+  </aside>
+
+  <section class="stack">
+    <div class="panel" id="icpPanel" hidden>
+      <h2>Ideal customer profile (derived from the event page)</h2>
+      <div class="icp" id="icp"></div>
+    </div>
+    <div class="panel" id="peoplePanel" hidden>
+      <div class="toolbar" style="margin-bottom:8px">
+        <h2 style="margin:0">People showing intent (person-level)</h2>
+        <span class="note" id="peopleSummary"></span>
+        <span style="flex:1"></span>
+        <button class="btn ghost sm" id="togglePeople">Show</button>
+      </div>
+      <div id="people" hidden></div>
+    </div>
+    <div class="panel">
+      <div class="toolbar">
+        <h2 style="margin:0">3 · Intent leads (accounts)</h2>
+        <input type="search" id="q" placeholder="Search company / person">
+        <label>Min score <input type="range" id="minScore" min="0" max="100" value="0"> <span id="minScoreV">0</span></label>
+        <label><input type="checkbox" id="onlyContacts"> with contacts</label>
+        <span style="flex:1"></span>
+        <span class="note" id="summary"></span>
+        <a class="btn ghost sm" id="export" href="#" download>Export CSV</a>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>#</th><th>Score</th><th>Account</th><th>Signals</th><th>Why now</th><th>Call first</th><th>Contact</th></tr></thead>
+          <tbody id="rows"><tr><td colspan="7" class="empty">Run the pipeline to see leads.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="overlay" id="overlay"></div>
+<div class="drawer" id="drawer"></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const KIND_LABEL={regulatory_penalty:"Regulator action",corporate_event:"Corporate event",news_trigger:"News trigger",hiring:"Hiring for role",engagement:"Engaged on LinkedIn",job_change:"New in seat",category_buyer:"Buys category",regulatory_change:"Rule change"};
+const STAGES=[["event","Read event page"],["icp","Derive ICP + search plan"],["collect","Collect signals (news · RBI/SEBI · BSE · jobs · LinkedIn)"],["score","Score accounts"],["explain","Write call notes"],["contacts","Resolve contacts"],["done","Done"]];
+let job=null, jobId=null, timer=null;
+
+function esc(s){return (s??"").toString().replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function kind(k){return `<span class="kind" style="background:var(--k-${k},#64748b)">${esc(KIND_LABEL[k]||k)}</span>`}
+
+async function api(path,opts){const r=await fetch(path,opts);if(!r.ok){throw new Error((await r.json().catch(()=>({detail:r.statusText}))).detail)}return r.json()}
+
+async function loadHealth(){
+  const h=await api("/api/health");
+  $("#pills").innerHTML=[[`LLM · ${h.provider||""}`,h.llm],["LinkedIn via Apify",h.apify],["LinkedIn free lane",h.linkedin_free],["Apollo",h.apollo],["Clay webhook",h.clay_webhook]]
+    .map(([n,on])=>`<span class="pill ${on?"on":"off"}">${n} ${on?"✓":"–"}</span>`).join("")+`<span class="pill">lookback ${h.lookback_days}d</span>`;
+}
+async function loadEvents(refresh=false){
+  const ev=await api("/api/events"+(refresh?"?refresh=1":""));
+  $("#event").innerHTML=ev.map(e=>`<option value="${esc(e.id)}">${esc(e.title)}</option>`).join("");
+  const pref=ev.find(e=>/labour codes/i.test(e.title)&&/mastering/i.test(e.title))||ev[1];
+  if(pref)$("#event").value=pref.id;
+}
+async function loadRuns(){
+  const runs=await api("/api/jobs");
+  $("#runs").innerHTML=runs.length?runs.map(r=>`<div class="run ${r.id===jobId?"sel":""}" data-id="${r.id}"><span class="t">${esc(r.event_title||r.id)}</span><span class="sub">${r.status==="done"?(r.lead_count+" leads"):r.status}</span></div>`).join(""):'<div class="note">None yet</div>';
+  document.querySelectorAll(".run").forEach(el=>el.onclick=()=>openJob(el.dataset.id));
+}
+
+function renderSteps(){
+  const cur=job?job.stage:"";const idx=STAGES.findIndex(s=>s[0]===cur);
+  $("#steps").innerHTML=STAGES.map((s,i)=>`<div class="step ${i<idx||(job&&job.status==="done")?"done":(i===idx&&job&&job.status==="running"?"active":"")}"><span class="dot"></span>${s[1]}</div>`).join("");
+  if(job&&job.status==="error")$("#steps").innerHTML+=`<div class="step" style="color:var(--bad)"><span class="dot" style="background:var(--bad)"></span>Error — see log</div>`;
+}
+function renderCounts(){
+  if(!job||!job.counts)return $("#counts").innerHTML="";
+  const c=job.counts;const order=[["news","news"],["regulators","RBI/SEBI"],["bse","BSE filings"],["jobs","job posts"],["linkedin","LinkedIn engagers"],["people","named people"],["total_signals","signals"]];
+  $("#counts").innerHTML=order.filter(([k])=>k in c).map(([k,l])=>`<span class="count"><b>${c[k]}</b> ${l}</span>`).join("")+(job.lead_count?`<span class="count"><b>${job.lead_count}</b> accounts</span>`:"");
+}
+function renderLog(){
+  if(!job)return;
+  $("#log").textContent=job.log.slice(-14).map(l=>`${l.t.slice(11,19)}  ${l.msg}`).join("\n")+(job.error?"\n"+job.error:"");
+  $("#log").scrollTop=1e9;
+}
+function renderICP(){
+  const icp=job&&job.icp;if(!icp||!icp.buyer_titles||!icp.buyer_titles.length){$("#icpPanel").hidden=true;return}
+  $("#icpPanel").hidden=false;
+  $("#icp").innerHTML=`
+    <div><h3>${esc(icp.topic)}</h3><p>${esc(icp.one_line_pitch)}</p><p class="note" style="margin-top:8px"><b>Why now:</b> ${esc(icp.why_now)}</p>
+      <p class="note" style="margin-top:6px"><b>Regulators watched:</b> ${esc((icp.regulators||[]).join(", ")||"–")} · <b>BSE filings:</b> ${esc((icp.bse_subcategories||[]).join(", ")||"–")}</p></div>
+    <div><h3>Who buys this</h3><div class="chips">${(icp.buyer_titles||[]).map(t=>`<span class="chip">${esc(t)}</span>`).join("")}</div>
+      <h3 style="margin-top:10px">Industries</h3><div class="chips">${(icp.industries||[]).map(t=>`<span class="chip">${esc(t)}</span>`).join("")}</div></div>
+    <div><h3>Search plan</h3><p class="note"><b>News:</b> ${esc((icp.news_queries||[]).slice(0,6).join(" · "))}</p><p class="note" style="margin-top:6px"><b>Roles:</b> ${esc((icp.job_queries||[]).join(" · "))}</p><p class="note" style="margin-top:6px"><b>LinkedIn:</b> ${esc((icp.linkedin_keywords||[]).join(" · "))}</p></div>`;
+}
+function contactCell(a){
+  if(a.contacts&&a.contacts.length){const c=a.contacts[0];
+    return `<div class="co" style="font-weight:500">${esc(c.name)}</div><div class="sub">${esc(c.title||"")}</div><div class="sub">${c.email?"✉ "+esc(c.email):""} ${c.phone?"☎ "+esc(c.phone):""}</div>`}
+  if(a.engaged_people&&a.engaged_people.length){const p=a.engaged_people[0];return `<div class="co" style="font-weight:500">${esc(p.name)}</div><div class="sub">${esc(p.title||"")}</div><span class="badge ok">engaged</span>`}
+  const m={pending:["warn","pending"],cached:["ok","found"],apollo:["ok","found"],clay:["ok","found"],clay_requested:["warn","Clay running"],unresolved:["","no provider"]};
+  const [cls,txt]=m[a.contact_status]||["",a.contact_status];return `<span class="badge ${cls}">${esc(txt)}</span>`;
+}
+function renderRows(){
+  if(!job){return}
+  const q=$("#q").value.toLowerCase(),min=+$("#minScore").value,oc=$("#onlyContacts").checked;
+  const rows=(job.accounts||[]).filter(a=>a.score>=min&&(!oc||(a.contacts&&a.contacts.length)||(a.engaged_people&&a.engaged_people.length))
+    &&(!q||a.company.toLowerCase().includes(q)||(a.contacts||[]).some(c=>(c.name||"").toLowerCase().includes(q))||(a.engaged_people||[]).some(p=>(p.name||"").toLowerCase().includes(q))));
+  $("#summary").textContent=`${rows.length} of ${(job.accounts||[]).length} accounts`;
+  $("#export").href=`/api/jobs/${job.id}/export.csv`;
+  if(!rows.length){$("#rows").innerHTML=`<tr><td colspan="7" class="empty">${job.status==="running"?"Collecting…":"No leads match."}</td></tr>`;return}
+  $("#rows").innerHTML=rows.map((a,i)=>`<tr class="lead" data-key="${esc(a.company_key)}">
+    <td class="sub">${i+1}</td>
+    <td><div class="score"><div class="bar"><i style="width:${a.score}%"></i></div><b>${a.score}</b></div></td>
+    <td><div class="co">${esc(a.company)}</div><div class="sub">${a.profile&&a.profile.size_label?esc(a.profile.size_label)+(a.profile.industry?" · "+esc(a.profile.industry):""):esc(a.location||"")}${a.latest_signal?" · "+esc(a.latest_signal):""}</div></td>
+    <td><div class="chips">${a.signal_kinds.map(kind).join("")}</div><div class="sub">${a.signal_count} signal${a.signal_count>1?"s":""}</div></td>
+    <td class="why">${esc(a.why||(a.signals[0]&&(a.signals[0].reason||a.signals[0].title))||"")}</td>
+    <td><div style="font-weight:500">${esc(a.best_persona||"")}</div><div class="sub">${esc(a.angle||"")}</div></td>
+    <td>${contactCell(a)}</td></tr>`).join("");
+  document.querySelectorAll("tr.lead").forEach(tr=>tr.onclick=()=>openDrawer(tr.dataset.key));
+}
+let peopleOpen=false;
+function renderPeople(){
+  const people=(job&&job.people)||[];
+  $("#peoplePanel").hidden=!people.length;
+  if(!people.length)return;
+  const q=$("#q").value.toLowerCase();
+  const rows=people.filter(p=>!q||(p.name||"").toLowerCase().includes(q)||(p.company||"").toLowerCase().includes(q));
+  $("#peopleSummary").textContent=`${rows.length} named people — new appointees, post authors and commenters`;
+  $("#togglePeople").textContent=peopleOpen?"Hide":"Show";
+  $("#people").hidden=!peopleOpen;
+  if(!peopleOpen)return;
+  $("#people").innerHTML=`<div class="tablewrap" style="max-height:320px"><table><thead><tr><th>Person</th><th>Company</th><th>Signal</th><th>When</th><th>Fit</th></tr></thead><tbody>${rows.map(p=>`<tr>
+    <td><div class="co">${p.url?`<a href="${esc(p.url)}" target="_blank" rel="noopener" style="color:inherit">${esc(p.name)}</a>`:esc(p.name)}</div><div class="sub">${esc(p.title||"")}</div></td>
+    <td>${p.company?`<a href="#" data-acc="${esc(p.company_key)}" style="color:var(--accent);text-decoration:none">${esc(p.company)}</a>`:'<span class="sub">unknown</span>'}</td>
+    <td class="why">${esc(p.reason||p.how)}${p.comment?`<div class="sub">“${esc(p.comment.slice(0,120))}”</div>`:""}${p.evidence_url?` <a href="${esc(p.evidence_url)}" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">↗</a>`:""}</td>
+    <td class="sub">${esc(p.date||"")}</td><td><span class="badge ${p.relevance>=0.7?"ok":""}">${Math.round(p.relevance*100)}%</span></td></tr>`).join("")}</tbody></table></div>`;
+  document.querySelectorAll("[data-acc]").forEach(a=>a.onclick=e=>{e.preventDefault();openDrawer(a.dataset.acc)});
+}
+$("#togglePeople").onclick=()=>{peopleOpen=!peopleOpen;renderPeople()};
+function renderAll(){renderSteps();renderCounts();renderLog();renderICP();renderRows();renderPeople()}
+
+async function poll(){
+  try{job=await api(`/api/jobs/${jobId}`)}catch(e){$("#log").textContent=e.message;return}
+  renderAll();
+  if(job.status==="running"||job.status==="queued"){timer=setTimeout(poll,2000)}else{$("#run").disabled=false;loadRuns()}
+}
+async function openJob(id){jobId=id;clearTimeout(timer);$("#run").disabled=true;await poll();loadRuns()}
+
+$("#run").onclick=async()=>{
+  $("#run").disabled=true;$("#log").textContent="Starting…";
+  try{const r=await api("/api/run",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({event_id:$("#event").value})});jobId=r.job_id;job=null;poll();}
+  catch(e){$("#log").textContent="Cannot start: "+e.message;$("#run").disabled=false}
+};
+$("#refreshEvents").onclick=()=>loadEvents(true);
+["#q","#minScore","#onlyContacts"].forEach(s=>$(s).addEventListener("input",()=>{$("#minScoreV").textContent=$("#minScore").value;renderRows();renderPeople()}));
+
+// ---- drawer ----
+let drawerTab="email", outreachCache={};
+async function openDrawer(key){
+  const a=await api(`/api/jobs/${jobId}/accounts/${encodeURIComponent(key)}`);
+  $("#overlay").classList.add("open");$("#drawer").classList.add("open");
+  const sigs=a.signals.map(s=>`<div class="sig"><div class="top">${kind(s.kind)}<span>${esc(s.date||"n/d")}</span><span>· ${esc(s.source)}</span><span style="margin-left:auto">relevance ${Math.round(s.relevance*100)}%</span></div>
+      <div class="t">${esc(s.reason||s.title)}</div><div class="note">${esc(s.title)}${s.person_name?` — <b>${esc(s.person_name)}</b>, ${esc(s.person_title||"")}`:""}${s.location?" · "+esc(s.location):""}</div>
+      ${s.url?`<a href="${esc(s.url)}" target="_blank" rel="noopener">open evidence ↗</a>`:""}${s.person_url?` &nbsp;<a href="${esc(s.person_url)}" target="_blank" rel="noopener">LinkedIn profile ↗</a>`:""}</div>`).join("");
+  const contacts=(a.contacts||[]).map((c,i)=>`<div class="contact"><div><div class="n">${esc(c.name)}</div><div class="meta">${esc(c.title||"")}${c.city?" · "+esc(c.city):""}</div><div class="meta">${c.email?"✉ "+esc(c.email)+(c.email_status?" ("+esc(c.email_status)+")":""):"✉ not found"} &nbsp; ${c.phone?"☎ "+esc(c.phone):""}</div></div>
+      <div style="display:flex;gap:6px">${c.linkedin_url?`<a class="btn ghost sm" href="${esc(c.linkedin_url)}" target="_blank" rel="noopener">LinkedIn</a>`:""}<button class="btn sm" data-ci="${i}">Draft outreach</button></div></div>`).join("")
+    ||`<div class="note">No named contact yet — status: <b>${esc(a.contact_status)}</b>. ${a.engaged_people&&a.engaged_people.length?"Engaged people below can be called directly.":"Connect Apollo or the Clay webhook (see README) or load contacts via /api/contacts."}</div>`;
+  const people=(a.engaged_people||[]).map(p=>`<div class="contact"><div><div class="n">${esc(p.name)}</div><div class="meta">${esc(p.title||"")}</div><div class="meta">${esc(p.how)}</div></div><div style="display:flex;gap:6px">${p.url?`<a class="btn ghost sm" href="${esc(p.url)}" target="_blank" rel="noopener">LinkedIn</a>`:""}</div></div>`).join("");
+  $("#drawer").innerHTML=`<button class="close" id="close">✕</button>
+    <div class="sub">Intent score</div><div style="display:flex;align-items:center;gap:12px"><h2>${esc(a.company)}</h2><span class="badge">${a.score}/100</span></div>
+    <div class="chips" style="margin-top:8px">${a.signal_kinds.map(kind).join("")}</div>
+    ${a.profile&&a.profile.size_label?`<div class="note" style="margin-top:8px">${esc(a.profile.size_label)} · ${esc(a.profile.industry||"")}${a.profile.sector?" · "+esc(a.profile.sector):""} · BSE group ${esc(a.profile.group||"")}${a.profile.index?" · "+esc(a.profile.index):""}${a.raw_score!==a.score?` · raw ${a.raw_score} × ${a.profile.adjustment}`:""}</div>`:""}
+    <div class="sec"><h4>Why now (call notes)</h4><div class="msg">${esc(a.why||"—")}</div><div class="note" style="margin-top:6px"><b>Call first:</b> ${esc(a.best_persona||"–")} · <b>Angle:</b> ${esc(a.angle||"–")}</div></div>
+    <div class="sec"><h4>Evidence (${a.signals.length})</h4>${sigs}</div>
+    ${people?`<div class="sec"><h4>People who engaged (person-level intent)</h4>${people}</div>`:""}
+    <div class="sec"><h4>Decision-maker contacts</h4>${contacts}${(a.contacts||[]).length?"":`<div style="margin-top:8px"><button class="btn sm" data-ci="-1">Draft outreach for the ${esc(a.best_persona||"decision maker")}</button></div>`}</div>
+    <div class="sec" id="outreach"></div>`;
+  $("#close").onclick=closeDrawer;
+  document.querySelectorAll("[data-ci]").forEach(b=>b.onclick=()=>draft(a,+b.dataset.ci));
+}
+function closeDrawer(){$("#overlay").classList.remove("open");$("#drawer").classList.remove("open")}
+$("#overlay").onclick=closeDrawer;
+async function draft(a,ci){
+  const box=$("#outreach");box.innerHTML=`<h4>Outreach</h4><div class="note">Writing persona-tailored drafts…</div>`;
+  let o;try{o=await api(`/api/jobs/${jobId}/accounts/${encodeURIComponent(a.company_key)}/outreach?contact_index=${ci}`,{method:"POST"})}catch(e){box.innerHTML=`<h4>Outreach</h4><div class="note">Failed: ${esc(e.message)}</div>`;return}
+  const render=()=>{
+    const body=drawerTab==="email"?`Subject: ${o.email_subject}\n\n${o.email_body}`:drawerTab==="wa"?o.whatsapp:o.call_opener;
+    box.innerHTML=`<h4>Outreach · ${esc(o.persona_angle||"")}</h4><div class="tabs">${[["email","Email"],["wa","WhatsApp"],["call","Call opener"]].map(([k,l])=>`<button class="tab ${drawerTab===k?"on":""}" data-t="${k}">${l}</button>`).join("")}<button class="btn ghost sm" id="copy" style="margin-left:auto">Copy</button></div><div class="msg" id="msg">${esc(body)}</div>`;
+    document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{drawerTab=t.dataset.t;render()});
+    $("#copy").onclick=()=>navigator.clipboard.writeText(body).then(()=>{$("#copy").textContent="Copied";setTimeout(()=>$("#copy").textContent="Copy",1200)});
+  };render();
+}
+
+(async()=>{await loadHealth();await loadEvents();await loadRuns();renderSteps();})();
+</script>
+</body>
+</html>
